@@ -60,7 +60,15 @@ func main() {
 				Aliases: []string{"l"},
 				Usage:   "get local IP address information",
 				Action: func(cCtx *cli.Context) error {
-					validNames := []string{"en0", "utun10"}
+					validNames := []string{
+						// Local Interfaces
+						"en0",
+						"eth0",
+
+						// Tunnel Addresses
+						"wg0",
+						"utun10",
+					}
 
 					ifaces, err := net.Interfaces()
 					if err != nil {
@@ -105,12 +113,6 @@ func main() {
 							if IsIPv6(a.String()) {
 								v6Addr = a.String()
 							}
-
-							// switch v := a.(type) {
-							// case *net.IPAddr:
-							// fmt.Printf("%v : %s (%s)\n", i.Name, v, v.IP.DefaultMask())
-							// }
-
 						}
 
 						fmt.Printf(color.GreenString("  "+i.Name+": ")+" %s (%s)\n", v4Addr, v6Addr)
@@ -125,19 +127,27 @@ func main() {
 				Usage:   "lookup an IP address",
 				Action: func(cCtx *cli.Context) error {
 					if cCtx.Args().First() == "" {
-						fmt.Println("IP address argument is required.")
+						fmt.Println(color.RedString("IP address argument is required."))
+						return nil
+					}
+
+					if !IsIPv4(cCtx.Args().First()) || !IsIPv6(cCtx.Args().First()) {
+						fmt.Println(color.RedString("That is not a valid IP Address."))
+						return nil
 					}
 
 					resp, httpErr := http.Get("https://ipinfo.io/" + cCtx.Args().First())
 
 					if httpErr != nil {
-						fmt.Println(httpErr)
+						fmt.Println(color.RedString(httpErr.Error()))
+						return nil
 					}
 
 					body, ioErr := io.ReadAll(resp.Body)
 
 					if ioErr != nil {
-						fmt.Println(ioErr)
+						fmt.Println(color.RedString(ioErr.Error()))
+						return nil
 					}
 
 					var infoObject AddressInformation
@@ -145,7 +155,8 @@ func main() {
 					jsonErr := json.Unmarshal(body, &infoObject)
 
 					if jsonErr != nil {
-						fmt.Println(jsonErr)
+						fmt.Println(color.RedString(jsonErr.Error()))
+						return nil
 					}
 
 					fmt.Printf(format(color.MagentaString("IPINFO - Address Information")+"\nAddress: {{.Ip}}\nLocation: {{.City}}, {{.Region}} {{.Country}} ({{.Postal}})\nOrganization: {{.Org}}", infoObject))
