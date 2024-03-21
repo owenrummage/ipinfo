@@ -131,7 +131,8 @@ func main() {
 						return nil
 					}
 
-					if !IsIPv4(cCtx.Args().First()) || !IsIPv6(cCtx.Args().First()) {
+					ip := net.ParseIP(cCtx.Args().First())
+					if ip == nil {
 						fmt.Println(color.RedString("That is not a valid IP Address."))
 						return nil
 					}
