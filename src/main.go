@@ -60,16 +60,6 @@ func main() {
 				Aliases: []string{"l"},
 				Usage:   "get local IP address information",
 				Action: func(cCtx *cli.Context) error {
-					validNames := []string{
-						// Local Interfaces
-						"en0",
-						"eth0",
-
-						// Tunnel Addresses
-						"wg0",
-						"utun10",
-					}
-
 					ifaces, err := net.Interfaces()
 					if err != nil {
 						fmt.Print(fmt.Errorf("localAddresses: %+v\n", err.Error()))
@@ -93,10 +83,8 @@ func main() {
 
 					fmt.Println(color.MagentaString("LOCAL INTERFACES:"))
 					for _, i := range ifaces {
-						if contains(validNames, i.Name) == false {
-							continue
-						}
-
+						if i.Name == "lo" { continue }
+						if len(i.Name) >= 6 && i.Name[:6] == "docker" { continue }
 						var v4Addr string
 						var v6Addr string
 
