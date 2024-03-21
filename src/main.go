@@ -160,7 +160,7 @@ func main() {
 						return nil
 					}
 
-					fmt.Printf(format(color.MagentaString("IPINFO - Address Information")+"\nAddress: {{.Ip}}\nLocation: {{.City}}, {{.Region}} {{.Country}} ({{.Postal}})\nOrganization: {{.Org}}", infoObject))
+					fmt.Printf(format(color.MagentaString("IPINFO - Address Information")+"\n  Address: {{.Ip}}\n  Location: {{.City}}, {{.Region}} {{.Country}} ({{.Postal}})\n  Organization: {{.Org}}", infoObject))
 					return nil
 				},
 			},
