@@ -83,8 +83,14 @@ func main() {
 
 					fmt.Println(color.MagentaString("LOCAL INTERFACES:"))
 					for _, i := range ifaces {
-						if i.Name == "lo" { continue }
-						if len(i.Name) >= 6 && i.Name[:6] == "docker" { continue }
+
+						if i.Name[:2] == "lo" {
+							continue
+						}
+						if len(i.Name) >= 6 && i.Name[:6] == "docker" {
+							continue
+						}
+
 						var v4Addr string
 						var v6Addr string
 
@@ -94,6 +100,9 @@ func main() {
 							continue
 						}
 						for _, a := range addrs {
+							if a.String() == "" || a.String()[:4] == "fe80" {
+								continue
+							}
 
 							if IsIPv4(a.String()) {
 								v4Addr = a.String()
@@ -103,6 +112,9 @@ func main() {
 							}
 						}
 
+						if v4Addr == "" && v6Addr == "" {
+							continue
+						}
 						fmt.Printf(color.GreenString("  "+i.Name+": ")+" %s (%s)\n", v4Addr, v6Addr)
 					}
 
