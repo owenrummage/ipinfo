@@ -56,8 +56,8 @@ func main() {
 		Usage: "Get IP address information.",
 		Commands: []*cli.Command{
 			{
-				Name:    "local",
-				Aliases: []string{"l"},
+				Name:    "address",
+				Aliases: []string{"a"},
 				Usage:   "get local IP address information",
 				Action: func(cCtx *cli.Context) error {
 					ifaces, err := net.Interfaces()
@@ -66,24 +66,17 @@ func main() {
 						return nil
 					}
 
-					fmt.Println(color.MagentaString("REMOTE ADDRESSES:"))
-					resp, httpErr := http.Get("https://ifconfig.me/ip")
-
-					if httpErr != nil {
-						fmt.Println(httpErr)
+					resp, httpErr := http.Get("https://api.ipify.org")
+					if httpErr == nil {
+						defer resp.Body.Close()
+						body, ioErr := io.ReadAll(resp.Body)
+						if ioErr == nil {
+							fmt.Println(color.MagentaString("PUBLIC ADDRESS:") + " " + color.WhiteString(string(body)))
+						}
 					}
-
-					body, ioErr := io.ReadAll(resp.Body)
-
-					if ioErr != nil {
-						fmt.Println(ioErr)
-					}
-
-					fmt.Println("  " + color.GreenString("WAN: ") + string(body))
 
 					fmt.Println(color.MagentaString("LOCAL INTERFACES:"))
 					for _, i := range ifaces {
-
 						if i.Name[:2] == "lo" {
 							continue
 						}
@@ -91,8 +84,7 @@ func main() {
 							continue
 						}
 
-						var v4Addr string
-						var v6Addr string
+						var v4Addr, v6Addr string
 
 						addrs, err := i.Addrs()
 						if err != nil {
@@ -117,13 +109,12 @@ func main() {
 						}
 						fmt.Printf(color.GreenString("  "+i.Name+": ")+" %s (%s)\n", v4Addr, v6Addr)
 					}
-
 					return nil
 				},
 			},
 			{
-				Name:    "address",
-				Aliases: []string{"a"},
+				Name:    "lookup",
+				Aliases: []string{"l"},
 				Usage:   "lookup an IP address",
 				Action: func(cCtx *cli.Context) error {
 					if cCtx.Args().First() == "" {
